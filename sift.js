@@ -453,7 +453,7 @@
     
     //cleanup query (currently sift breaks when comparing ObjectIds but strings work fine)
     query = (function cleanupQuery(query) {
-      if (query && query.constructor && query.constructor.name === "ObjectId")
+      if (query && query.constructor && query.constructor.name === "ObjectID")
         return String(query);
 
       if ("object" === typeof query){

@@ -450,6 +450,19 @@
   }
 
   var sifter = function(query, selector) {
+    
+    //cleanup query (currently sift breaks when comparing ObjectIds but strings work fine)
+    query = (function cleanupQuery(query) {
+      if (query && query.constructor && query.constructor.name === "ObjectId")
+        return String(query);
+
+      if ("object" === typeof query){
+        for (var key in query) {
+          query[key] = cleanupQuery(query[key]);
+        }
+      }
+      return query;
+    })(query);
 
     //build the filter for the sifter
     var filter = _queryParser.parse( query );

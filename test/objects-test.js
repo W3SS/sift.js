@@ -1,10 +1,9 @@
-var _ = require('underscore'),
-    expect = require("expect.js"),
-    sift = require(".."),
+var sift = require(".."),
     assert = require("assert");
 
 
-describe("objects", function () {
+describe(__filename + "#", function () {
+
 
     var topic = [
         {
@@ -59,7 +58,7 @@ describe("objects", function () {
             ]
         }
     ];
-    it("throws error if $not is incorrect", function () {
+    xit("throws error if $not is incorrect", function () {
         assert.throws(function () {
             sift({
                 $not: ['abc']
@@ -114,6 +113,7 @@ describe("objects", function () {
                 }
             }
         }, topic);
+
         assert.equal(sifted.length, 2);
     });
     it("has sifted to complex count of 0", function () {
@@ -175,12 +175,93 @@ describe("objects", function () {
             });
         });
 
-        it("$neq for nested object", function () {
+        it("$ne for nested object", function () {
             var sifted = sift({'sub.num': {'$ne': 10}}, loremArr);
             assert(sifted.length > 0);
             sifted.forEach(function (v) {
                 assert.notEqual(10, v.sub.num);
             });
+        });
+
+        it("$regex for nested object (one missing key)", function () {
+            var persons = [{
+              id: 1,
+              prof: 'Mr. Moriarty'
+            }, {
+              id: 2,
+              prof: 'Mycroft Holmes'
+            }, {
+              id: 3,
+              name: 'Dr. Watson',
+              prof: 'Doctor'
+            }, {
+              id: 4,
+              name: 'Mr. Holmes',
+              prof: 'Detective'
+            }];
+            var q = { "name": { "$regex": "n" } };
+            var sifted = sift(q, persons);
+            assert.deepEqual(sifted, [{
+              id: 3,
+              name: 'Dr. Watson',
+              prof: 'Doctor'
+            }]);
+        });
+    });
+
+    describe("$where", function() {
+
+      var couples = [{
+          name: "SMITH",
+          person: [{
+                  firstName: "craig",
+                  gender: "female",
+                  age: 29
+              }, {
+                  firstName: "tim",
+                  gender: "male",
+                  age: 32
+              }
+
+          ]
+      }, {
+          name: "JOHNSON",
+          person: [{
+                  firstName: "emily",
+                  gender: "female",
+                  age: 35
+              }, {
+                  firstName: "jacob",
+                  gender: "male",
+                  age: 32
+              }
+
+          ]
+      }];
+
+      it("can filter people", function() {
+          var results = sift({"person": {$elemMatch: { "gender": "female", "age": {"$lt": 30}}}}, couples);
+          assert.equal(results[0].name, "SMITH");
+
+          var results = sift({"person": {$elemMatch: { "gender": "male", "age": {"$lt": 30}}}}, [couples[0]]);
+          assert.equal(results.length, 0);
+      });
+    });
+
+    describe("keypath", function () {
+
+        var arr = [
+            {
+                a: {
+                    b: {
+                        c: 1,
+                        c2: 1
+                    }
+                }
+            }
+        ]
+        it("can be used", function () {
+            assert.equal(sift({"a.b.c":1})(arr[0]), true);
         });
     });
 });
